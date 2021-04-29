@@ -13,78 +13,72 @@ class OpenAddressing:
         self.table = [None]*size
         self.hfunction = hfunction
         self.probetype = probetype
-        self.a = np.random.randint(0, self.size - 1)  #random value used for universal hashing
+        self.p = self.getPrime()
+        self.a = np.random.randint(0, self.size - 1)  #random values used for universal hashing
+        self.b = np.random.randint(0, self.p-1)
 
     def search(self, key):
-        #key=self.hashingfunction(key)
         for i in range(0, len(self.table)):
-            node = self.table[i]
-            if node is not None:
-                if node.key == key:
-                    return node
+            j = 0
+
+            if self.probetype == "linear":
+                j = (self.hashingfunction(key) + i) % self.size
+            elif self.probetype == "quadratic":
+                j = self.hashingfunction(key) + (6 * i) + (4 * (i * i)) % self.size
+            elif self.probetype == "doublehashing":
+                h1 = self.hashingfunction(key)
+                h2 = int(np.floor(((key * 0.837) % 1) * self.size))
+                j = h1 + (i * h2) % self.size
+
+            if j > len(self.table):
+                break
+            if  self.table[j] == None:
+                break
+
+            #print(j, self.table[j].key, key)
+            if self.table[j].key == key:
+                return j
+
+        #print("search failed")
         return None
 
     def insert(self, key, value):
+
+
+        n = self.search(key)
+
+        if n is not None: #collision happens
+            for i in range(0,len(self.table)):
+                j=0
+
+                if self.probetype == "linear":
+                    j = (self.hashingfunction(key)+i) % self.size
+                elif self.probetype == "quadratic":
+                    j = self.hashingfunction(key) + (6*i) + (4*(i*i)) % self.size
+                elif self.probetype == "doublehashing":
+                    h1 = self.hashingfunction(key)
+                    h2 = int(np.floor(((key * 0.837) % 1) * self.size))
+                    j = h1+(i* h2) % self.size
+
+
+                if self.table[j] is None:
+                    node = Node(j, value)
+                    self.table[j]=node
+                    return j
+            print("overflow error")
+            return None
         h = self.hashingfunction(key)
-        n = self.search(h)
-        if n is not None:
-            if self.probetype == "linear":
-                ph = h % self.size
-                #print("probehash", probehash, "size", self.size)
-                for i in range(ph, len(self.table)):
-                    potentialnode = self.table[i]
-                    if potentialnode is None:
-                        node = Node(i, value)
-                        self.table[i] = node
-                        return i
-
-                for i in range(0, ph-1):
-                    potentialnode = self.table[i]
-                    if potentialnode is None:
-                        node = Node(i, value)
-                        self.table[i] = node
-                        return i
-                print("Table overflow error")
-                return False
-
-            if self.probetype == "quadratic":
-                for i in range(0, len(self.table)-1):
-                    ph = (h + (i * i)) % self.size #c1 = 0 and c2 = 1
-                    if self.table[ph] is None:
-                        node = Node(ph, value)
-                        self.table[ph] = node
-                        return i
-
-                print("Table overflow error")
-                return False
-
-            if self.probetype == "doublehashing":
-                h1k = int(key % self.size) # m = self.size
-                h2k = 1+(key % (self.size - 3))
-                for i in range(0, len(self.table)):
-                    spot = (h1k+(i*h2k)) % self.size
-                    if self.table[spot] is None:
-                        node = Node(h, value)
-                        self.table[spot] = node
-                        return spot
-
-                print("Table overflow error", "h1k", h1k, "h2k", h2k) #happens sometimes
-                return False
-
         node = Node(h, value)
-        for i in range(0, len(self.table)):
-            if self.table[i] is None:
-                self.table[i] = node
-                break
+        self.table[h] = node
         return h
 
     def deletekey(self, key):
         n = self.search(int(key))
         if n is not None:
-            self.table[int(key)] = None
+            self.table[int(key)] = "Deleted"
             print("Deleted key ", key)
             return True
-        print("failed to delete value", key)
+        print("failed to delete key", key)
 
     def print(self):
         print("table is of size: ", len(self.table))
@@ -99,4 +93,16 @@ class OpenAddressing:
         elif self.hfunction == "multiplication":
             return int(np.floor(((key * 0.837) % 1) * self.size))
         elif self.hfunction == "universal":
-            return int(key)*self.a
+            return ((round(self.a*key + self.b))%self.p)%self.size
+
+    def getPrime(self, p=0):
+        if p == 0:
+            p = np.random.randint(1000000, 10000000)
+        while not self.isprime(p):
+            p += 1
+        return p
+
+    def isprime(self, n):
+        if n <= 2 or n % 2 == 0:
+            return False
+        return not any((n % i == 0 for i in range(3, n - 1)))

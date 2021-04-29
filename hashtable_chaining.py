@@ -12,7 +12,9 @@ class ChainingHashTable:
         self.size = size
         self.table = [None]*size
         self.hfunction = hfunction
-        self.a = np.random.randint(0, self.size - 1)  #random value used for universal hashing
+        self.p = self.getPrime()
+        self.a = np.random.randint(0, self.size - 1)  #random values used for universal hashing
+        self.b = np.random.randint(0, self.p-1)
 
     def search(self, key):
         #key=self.hashingfunction(key)
@@ -32,10 +34,6 @@ class ChainingHashTable:
 
         node = Node(h, value)
         self.table[h] = node
-        #for i in range(0, len(self.table)):
-        #    if self.table[i] is None:
-        #        self.table[i]=node
-        #        break
         return h
 
     def deletekey(self, key):
@@ -55,12 +53,20 @@ class ChainingHashTable:
 
     def hashingfunction(self,key):
         if self.hfunction=="division":
-            h= int(key) % self.size
-            #print(h)
             return int(key) % self.size
         elif self.hfunction == "multiplication":
-            #print("got key", key, "calculated hash", np.floor(((key * 0.671) % 1) * self.size))
             return int(np.floor(((key * 0.671) % 1) * self.size))
         elif self.hfunction == "universal":
-            print("key", key, "hash", int(key)*self.a)
-            return int(key)*self.a
+            return ((round(self.a*key + self.b))%self.p)%self.size
+
+    def getPrime(self, p=0):
+        if p == 0:
+            p = np.random.randint(1000000, 10000000)
+        while not self.isprime(p):
+            p += 1
+        return p
+
+    def isprime(self, n):
+        if n <= 2 or n % 2 == 0:
+            return False
+        return not any((n % i == 0 for i in range(3, n - 1)))
