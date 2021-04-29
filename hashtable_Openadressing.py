@@ -32,9 +32,11 @@ class OpenAddressing:
 
             if j > len(self.table):
                 break
-            if  self.table[j] == None:
-                break
-
+            try:
+                if  self.table[j] == None:
+                    break
+            except:
+                return None
             #print(j, self.table[j].key, key)
             if self.table[j].key == key:
                 return j
@@ -60,12 +62,18 @@ class OpenAddressing:
                     h2 = int(np.floor(((key * 0.837) % 1) * self.size))
                     j = h1+(i* h2) % self.size
 
-
-                if self.table[j] is None:
-                    node = Node(j, value)
-                    self.table[j]=node
-                    return j
-            print("overflow error")
+                if j > len(self.table):
+                    break
+                try:
+                    if self.table[j] is None:
+                        node = Node(j, value)
+                        self.table[j]=node
+                        return j
+                except:
+                    h = self.hashingfunction(key)
+                    node = Node(h, value)
+                    self.table[h] = node
+            #print("overflow error")
             return None
         h = self.hashingfunction(key)
         node = Node(h, value)

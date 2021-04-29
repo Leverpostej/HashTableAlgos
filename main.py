@@ -8,11 +8,11 @@ import sys
 #table = hashtable_chaining.ChainingHashTable(20000, hfunction="multiplication",)
 # hfunction which type of hash function to choose; division, multipliciation, universal
 
-table = hashtable_Openadressing.OpenAddressing(100000, hfunction="multiplication", probetype="doublehashing")
-#table1 = hashtable_chaining.ChainingHashTable(20000, hfunction="multiplication")
+table = hashtable_Openadressing.OpenAddressing(150 , hfunction="universal", probetype="doublehashing")
+#table = hashtable_chaining.ChainingHashTable(1500, hfunction="universal")
 # probetype which type of probe to use for open addressing; linear, quadratic, doublehashing
 
-with open('imdb.csv', mode='r', encoding="utf8") as csv_file:
+with open('Pokemon.csv', mode='r', encoding="utf8") as csv_file:
     csv_reader = csv.DictReader(csv_file)
     counter = 1
     starttime = time.time()
@@ -20,18 +20,19 @@ with open('imdb.csv', mode='r', encoding="utf8") as csv_file:
         if row is not None:
             #if line_count==10000:
             #    break
-            s = table.insert(key=np.random.randint(0,3500), value=row["title"])
+            s = table.insert(key=np.random.randint(0,150), value=row["name"])
             if s is not None:
                 counter += 1
             #table2.insert(key=np.random.randint(0, 3500), value=row["Name"])
 
     print("took", time.time() - starttime, "secs to input", counter, "values")
-    #loadfactor = counter/table.size
-    #print("loadfactor", loadfactor)
-    #print("expected time to search/insert/delete", 1/(1-loadfactor))
-    table.insert(50,"Tobias")
+    loadfactor = counter/table.size
+    print("loadfactor", loadfactor)
+    print("expected time to search/insert/delete", 1/(1-loadfactor))
+    #table.insert(50,"Tobias")
     print("table1 takes up", (sys.getsizeof(table.table))/(1024*1024), "megabytes")
-   # print("table2 takes up", (sys.getsizeof(table2.table))/(1024*1024), "megabytes")
+
+
 
 
 while True:
